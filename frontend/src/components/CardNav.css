@@ -1,0 +1,125 @@
+/* Container: Tugasnya cuma memastikan posisi di tengah Navbar */
+.card-nav-container {
+  position: relative;
+  display: flex;
+  align-items: center; /* Vertikal Center */
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  z-index: 50;
+}
+
+/* Nav Box Utama */
+.card-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  
+  /* Start Kecil (Sebesar tombol) */
+  width: 60px;
+  height: 60px;
+  
+  /* Style Default */
+  background: transparent;
+  border-radius: 16px;
+  overflow: hidden;
+  
+  /* PENTING: Jangan kasih transition height/width disini! */
+  /* Biar GSAP yang handle animasinya */
+}
+
+/* Header (Tempat Hamburger) */
+.card-nav-top {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 12px;
+}
+
+/* --- CardNav.css (FIX ROTASI X) --- */
+
+/* Bagian Hamburger Menu tetap sama */
+.hamburger-menu {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* GAP ini penting! Jarak antar garis saat posisi normal (=) */
+  gap: 6px; 
+  cursor: pointer;
+  z-index: 50;
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 2px; /* Ketebalan garis */
+  background-color: #333; /* Warna garis */
+  border-radius: 2px;
+  
+  /* PENTING: Titik putar di tengah */
+  transform-origin: center; 
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+}
+
+/* === LOGIC SAAT DIBUKA (BENTUK X) === */
+
+/* Garis PERTAMA: Turun sedikit, lalu putar 45 derajat */
+.hamburger-menu.open .hamburger-line:nth-child(1) {
+  /* translateY(4px) = Setengah dari (gap 6px + tinggi garis 2px) */
+  transform: translateY(4px) rotate(45deg);
+}
+
+/* Garis KEDUA: Naik sedikit, lalu putar -45 derajat (KEBALIKANNYA) */
+.hamburger-menu.open .hamburger-line:nth-child(2) {
+  /* JANGAN DI HIDE (opacity: 1) */
+  opacity: 1; 
+  /* Naik ke atas biar ketemu di tengah */
+  transform: translateY(-4px) rotate(-45deg);
+}
+
+/* Konten Dalam */
+.card-nav-content {
+  padding: 16px;
+  /* Opacity dihandle GSAP */
+}
+
+/* Kartu-kartu */
+.nav-card {
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  /* Shadow dikit biar pop-up */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.nav-card-label {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.nav-card-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-card-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  opacity: 0.8;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s;
+}
+
+.nav-card-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2016",          /* Versi JS tujuan (aman buat Node.js) */
+    "module": "commonjs",        /* Sistem modul standar Node.js */
+    "rootDir": "./",             /* Sumber file TS lu ada di folder ini */
+    "outDir": "./dist",          /* Hasil compile JS bakal masuk ke folder 'dist' */
+    "strict": true,              /* INI GURU KILLERNYA (Wajib True) */
+    "esModuleInterop": true,     /* Biar bisa import module CommonJS dengan cara modern */
+    "skipLibCheck": true,        /* Skip cek library orang lain biar hemat waktu */
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true
+  },
+  "include": ["./**/*.ts"],      /* Proses semua file .ts */
+  "exclude": ["node_modules"]    /* Jangan proses folder sampah ini */
+}
