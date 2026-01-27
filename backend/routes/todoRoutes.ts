@@ -1,4 +1,5 @@
 import express, { Router} from 'express';
+import { verifyToken } from '../middleware/authMiddleware';
 
 import {
     getTodos,
@@ -8,6 +9,9 @@ import {
 } from '../controllers/todoController';
 
 const router: Router = express.Router();
+
+
+router.use(verifyToken);
 
 router.get('/', getTodos);
 router.post('/', createTodo);

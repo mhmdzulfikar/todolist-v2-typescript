@@ -1,29 +1,29 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
-// Import API
+import { FaUser, FaLock, FaCheckCircle } from "react-icons/fa"; // Icon
 import { registerUser } from "../services/api";
 
 const Register = () => {
+
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState(""); // Buat nampilin error
+  const [confPassword, setConfPassword] = useState(""); 
+  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setErrorMsg(""); // Reset error
-
     try {
-      // Panggil API Register
-      await registerUser({ name, email, password });
       
-      // Kalau sukses, lempar ke halaman login
+      await registerUser({ 
+          name: name,
+          password: password,
+          confirmPassword: confPassword
+      });
+      
       alert("Registration Successful! Please Login.");
       navigate("/login");
     } catch (error) {
-      // Kalau gagal (misal email kembar), tampilkan pesan error dari backend
       if (error.response) {
         setErrorMsg(error.response.data.msg);
       } else {
@@ -41,7 +41,6 @@ const Register = () => {
           <p className="text-gray-500 mt-2">Join us and start organizing your tasks</p>
         </div>
 
-        {/* Tampilkan Error Merah jika ada */}
         {errorMsg && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-sm text-center">
                 {errorMsg}
@@ -49,39 +48,62 @@ const Register = () => {
         )}
 
         <form onSubmit={handleRegister} className="space-y-5">
-           {/* ... (Input Name, Email, Password SAMA SEPERTI SEBELUMNYA) ... */}
-           {/* Copy aja input-input dari file sebelumnya, gak ada yang berubah */}
            
-           {/* Name */}
+           {/* INPUT 1: USERNAME (Bukan Name) */}
            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email or Username</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaUser className="text-gray-400" />
               </div>
-              <input type="text" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
+              <input 
+                type="text" 
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
+                placeholder="Email or Username" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                required 
+              />
             </div>
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaEnvelope className="text-gray-400" />
-              </div>
-              <input type="email" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-          </div>
+          {/* Email gue HAPUS karena di Controller lu gak ada simpan email kan? 
+              Tapi kalau mau dipasang buat pajangan doang gapapa, asal jangan dikirim ke API kalau API nolak. 
+          */}
 
-          {/* Password */}
+          {/* INPUT 2: PASSWORD */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaLock className="text-gray-400" />
               </div>
-              <input type="password" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <input 
+                type="password" 
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
+                placeholder="••••••••" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+              />
+            </div>
+          </div>
+
+          {/* INPUT 3: CONFIRM PASSWORD (WAJIB ADA) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaCheckCircle className="text-gray-400" />
+              </div>
+              <input 
+                type="password" 
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
+                placeholder="Ketik ulang password..." 
+                value={confPassword} 
+                onChange={(e) => setConfPassword(e.target.value)} 
+                required 
+              />
             </div>
           </div>
 

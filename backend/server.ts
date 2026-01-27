@@ -77,29 +77,6 @@ const startServer = async (): Promise<void> => {
 
     await db.sync({ alter: true });
 
-    // 🔥 LOG MANUAL (Gak perlu install library)
-    console.log("\n🔥 === ABSENSI RUTE (ROUTE CHECK) === 🔥");
-    app._router.stack.forEach((r: any) => {
-        if (r.route && r.route.path) {
-            console.log(`[ROUTE] ${r.route.path}`);
-        } else if (r.name === 'router') {
-            // Cek rute daleman (Auth, Todo, dll)
-            if(r.regexp.toString().includes('auth') || r.regexp.toString().includes('todos')) {
-                 // console.log(`[ROUTER DETECTED]: ${r.regexp}`);
-            }
-            if(r.handle.stack) {
-                r.handle.stack.forEach((sub: any) => {
-                     if (sub.route) {
-                         // Nampilin method (GET/POST) dan Path-nya
-                         const method = Object.keys(sub.route.methods)[0].toUpperCase();
-                         console.log(`   -> ${method} ${sub.route.path}`);
-                     }
-                });
-            }
-        }
-    });
-    console.log("🔥 =================================== 🔥\n");
-
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT} 🚀`);

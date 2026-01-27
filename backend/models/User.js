@@ -2,25 +2,29 @@ const { DataTypes } = require('sequelize');
 const db = require('../config/database');
 
 const User = db.define('User', {
+    // 🔥 KITA BALIK PAKE 'name' (Sesuai keinginan Database lu)
     name: {
         type: DataTypes.STRING,
         allowNull: false
-    }, // <--- Jangan lupa koma
+    },
+    
     email: {
         type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
-    }, // <--- Jangan lupa koma
+        allowNull: true,
+        unique: false 
+    },
+    
     password: {
         type: DataTypes.STRING,
         allowNull: false
-    }, // <--- Jangan lupa koma
+    },
+    
     role: {
         type: DataTypes.STRING,
         defaultValue: "user"
-    }, // <--- NAH, DI SINI BIASANYA LUPA KOMA SEBELUM NAMBAH BAWAHNYA
+    },
     
-    // 🔥 KOLOM BARU: TRACKING LOGIN
+    // TRACKING & XP
     lastLogin: {
         type: DataTypes.DATE,
         allowNull: true

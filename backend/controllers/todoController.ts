@@ -1,31 +1,24 @@
 import { Request, Response } from 'express';
 import { Op } from 'sequelize'; 
-// Kalau Model lu masih JS, kadang TS minta pake require. 
-// Tapi kalau 'allowJs' udah true, coba pake import ini dulu:
 import Todo from '../models/Todo'; 
 import User from '../models/User';
-
-// --- Trik biar TS gak marah soal 'req.user' ---
-// Kita bikin interface custom (opsional, tapi good practice)
-interface AuthRequest extends Request {
-    user?: {
-        userId: number;
-    }
-}
 
 // ==========================================
 // 1. AMBIL DATA + AUTO RESET HARIAN 🧹
 // ==========================================
-export const getTodos = async (req: Request, res: Response): Promise<void> => {
+export const getTodos = async (req: Request, res: Response): Promise<any> => {
     try {
-        // Pake 'as any' adalah jalan pintas biar TS gak rewel nanyain "user itu apa?"
+        // Ambil UserId dari Token (Middleware)
         const userId = (req as any).user.userId;
 
         // --- 🟢 LOGIKA BARU: SI TUKANG BERSIH-BERSIH ---
+        // Cari jam 00:00 hari ini
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0); 
 
         // B. Lakukan PEMBERSIHAN MASSAL (Bulk Update)
+        // Logika: "Ubah jadi belum selesai (false) JIKA tugas itu sudah selesai (true) 
+        // TAPI terakhir diupdate SEBELUM hari ini (yesterday logic)"
         await Todo.update(
             { completed: false }, 
             {
@@ -33,19 +26,19 @@ export const getTodos = async (req: Request, res: Response): Promise<void> => {
                     userId: userId,
                     completed: true,
                     updatedAt: {
-                        [Op.lt]: todayStart // 🔥 Op.lt harusnya udah aman sekarang
+                        [Op.lt]: todayStart // 🔥 Op.lt (Less Than) aman disini
                     }
                 }
             }
         );
 
-        // --- 🔴 LOGIKA LAMA (AMBIL DATA) ---
+        // --- 🔴 AMBIL DATA (Sesuai Request: Order Descending) ---
         const todos = await Todo.findAll({ 
             where: { userId: userId }, 
-            order: [['createdAt', 'DESC']] 
+            order: [['createdAt', 'DESC']] // Data terbaru paling atas
         });
 
-        res.json(todos); // Gak perlu return response, cukup panggil res.json
+        res.json(todos);
 
     } catch (error: any) {
         console.error("Error Get Todos:", error);
@@ -65,8 +58,9 @@ export const createTodo = async (req: Request, res: Response): Promise<any> => {
         }
 
         const newTodo = await Todo.create({ 
-            task,                   
-            userId: (req as any).user.userId 
+            task: task,                   
+            userId: (req as any).user.userId,
+            completed: false
         });
 
         res.status(201).json(newTodo);
@@ -79,18 +73,14 @@ export const createTodo = async (req: Request, res: Response): Promise<any> => {
 // ==========================================
 // 3. UPDATE TUGAS + SISTEM LEVEL UP 🎮
 // ==========================================
-// ==========================================
-// 3. UPDATE TUGAS + SISTEM LEVEL UP 🎮
-// ==========================================
 export const updateTodo = async (req: Request, res: Response): Promise<any> => {
     try {
         const { id } = req.params;
         const { completed } = req.body; 
         
-        // 🔥 TRIKNYA DISINI: Tambahin ': any' setelah nama variable
-        // Biar TS gak protes pas kita panggil todo.completed nanti
+        // Cari Todo spesifik punya user ini
         const todo: any = await Todo.findOne({ 
-            where: { id, userId: (req as any).user.userId } 
+            where: { id: id, userId: (req as any).user.userId } 
         });
 
         if (!todo) {
@@ -100,30 +90,35 @@ export const updateTodo = async (req: Request, res: Response): Promise<any> => {
         let xpGained = 0;
         let newLevel = null;
 
-        // Sekarang todo.completed GAK BAKAL MERAH lagi
+        // --- LOGIKA GAMIFIKASI (XP & LEVEL) ---
+        // Jika user mencentang selesai (completed: true) DAN sebelumnya belum selesai
         if (completed === true && todo.completed === false) {
             
-            // 🔥 INI JUGA: Kasih ': any' ke user
             const user: any = await User.findByPk((req as any).user.userId);
             
             if (user) {
-                // user.xp dan user.level sekarang aman
+                // Tambah XP (+10)
                 user.xp = (user.xp || 0) + 10; 
                 xpGained = 10;
                 
+                // Hitung Level (Setiap 100 XP naik 1 level)
                 const calculatedLevel = Math.floor(user.xp / 100) + 1;
                 
+                // Cek apakah Level Naik
                 if (calculatedLevel > (user.level || 1)) {
                     user.level = calculatedLevel;
                     newLevel = calculatedLevel;
                 }
-                await user.save(); 
+                
+                await user.save(); // Simpan data user
             }
         }
 
+        // Update status Todo
         todo.completed = completed;
         await todo.save();
         
+        // Kirim response lengkap (XP & Level buat animasi di frontend)
         res.json({ message: "Status updated", xpGained, newLevel });
 
     } catch (error: any) {

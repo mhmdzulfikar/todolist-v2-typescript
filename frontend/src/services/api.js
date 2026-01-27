@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. Buat Instance Axios
 const api = axios.create({
-  baseURL: 'http://localhost:5000', 
+  baseURL: 'http://127.0.0.1:5000', 
   withCredentials: true,
   headers: {
     "Content-Type" : "application/json"
@@ -103,11 +103,10 @@ export const updateNote = async (data) => {
 
 // AUTH
 export const getMe = async () => {
-  const response = await api.get('/auth/me');
+  const response = await api.get('/auth/getMe');
   return response.data;
 };
 
-// 🔥🔥 INI YANG TADI KURANG (WAJIB ADA) 🔥🔥
 export const deleteCard = async (id) => {
   const response = await api.delete(`/cards/${id}`);
   return response.data;
