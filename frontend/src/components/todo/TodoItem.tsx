@@ -11,6 +11,7 @@ interface TodoItemProps {
     editTask: (id: number, text: string) => void;
 }
 
+// React.FC = Functional Component
 const TodoItem: React.FC<TodoItemProps> = ({ task, toggleComplete, deleteTask, editTask }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [newText, setNewText] = useState(task.task);
