@@ -1,4 +1,3 @@
-```markdown
 # Fullstack Productivity Hub
 
 ![Project Status](https://img.shields.io/badge/status-active-success.svg)
@@ -7,7 +6,6 @@
 
 **Fullstack Productivity Hub** is a comprehensive web application designed to streamline daily tasks and boost efficiency. Built using the **PERN Stack** (PostgreSQL, Express, React, Node.js), this application integrates task management, note-taking, code snippet storage, and productivity analytics into a single, cohesive interface.
 
----
 
 ## System Design & Architecture
 
@@ -24,7 +22,7 @@ Below is the blueprint of the application's data flow, including Authentication 
 <img width="100%" alt="Database Schema" src="https://github.com/user-attachments/assets/c4267518-63ae-42b2-b383-10ea62cb1712" />
 </details>
 
----
+
 
 ## Data Flow & Logic
 
