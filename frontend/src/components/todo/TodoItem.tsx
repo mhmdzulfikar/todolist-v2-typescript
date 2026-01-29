@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { FaTrash, FaCheck, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { Todo } from "../../types/todo";
 
+// Tampilan Halaman Edit
+
 // 1. DEFINISI PROPS (KONTRAK DATA)
 // Ini adalah "Syarat Masuk" buat component TodoItem.
 // Parent (TodoList) WAJIB ngirim fungsi-fungsi ini. Kalau lupa, TypeScript bakal teriak merah.
