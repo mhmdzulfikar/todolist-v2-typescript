@@ -117,7 +117,7 @@ const SnippetLibrary = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
             <div>
                 <h1 className=" text-4xl font-extrabold tracking-tight text-gray-900 dark:text-blue flex items-center gap-3">
-                    <span className="bg-gradient-to-r bg-clip-text text-transparent from-indigo-500 to-purple-600">
+                    <span className="bg-linear-to-r bg-clip-text text-transparent from-indigo-500 to-purple-600">
                         Code Library
                     </span>
                 </h1>

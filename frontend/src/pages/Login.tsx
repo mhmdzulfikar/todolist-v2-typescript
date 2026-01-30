@@ -1,29 +1,35 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaUser, FaLock } from "react-icons/fa"; // Ganti FaEnvelope jadi FaUser
-import { loginUser } from "../services/api";
+import { FaUser, FaLock } from "react-icons/fa"; 
+import { authService } from "../services/authService"; 
 
-const Login = () => {
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+const Login: React.FC = () => { // 1. React.FC = Memberi tahu ini adalah Function Component
+  // 2. State Typing: <string>
+  // Sebenernya TS cukup pinter nebak ini string, tapi ditulis biar tegas.
+  const [name, setName] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  // 3. Event Typing: React.FormEvent
+  // Ini biar TS tau "e" itu event dari Form Submit, bukan event klik mouse biasa.
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(""); // Reset error dulu sebelum request
+
     try {
-      const data = await loginUser({ name: name, password });
+      // Panggil service (sesuaikan nama fungsinya di authService.ts lo)
+      const data = await authService.login({ email: name, password });
       
+      // Simpan ke LocalStorage
       localStorage.setItem('token', data.token);
       
-      // Simpan Name
-      if (data.name) localStorage.setItem('name', data.name);
+      // Safety Check: Pake "Optional Chaining" (?.) biar gak crash kalau data.name kosong
+      if (data?.name) localStorage.setItem('name', data.name);
       
-      // Note: Data name & role mungkin belum ada di response login backend lu saat ini.
-      // Nanti biasanya diambil lewat API /me. Tapi kode di bawah ini aman (gak bikin error).
-      if (data.name) localStorage.setItem('name', data.name);
-      
-      if (data.role) {
+      // Logic Role
+      if (data?.role) {
           localStorage.setItem('role', data.role);
       } else {
           localStorage.setItem('role', "user");
@@ -31,11 +37,21 @@ const Login = () => {
       
       navigate("/dashboard"); 
       
-    } catch (error) {
+    } catch (error: any) { 
+      // 4. Error Typing: any
+      // Di TypeScript, error di catch block itu tipe aslinya 'unknown'.
+      // Biar cepet dan gak ribet casting, kita pake ': any' dulu.
+      // (Kalau cara pro: pake 'if (axios.isAxiosError(error))')
+      
+      console.error(error);
+
       if (error.response) {
-        setErrorMsg(error.response.data.msg);
+        // Ambil pesan error dari backend (biasanya di msg atau message)
+        setErrorMsg(error.response.data.msg || error.response.data.message || "Login Gagal");
+      } else if (error.request) {
+        setErrorMsg("Server tidak merespon. Cek koneksi backend.");
       } else {
-        setErrorMsg("Login Failed. Periksa koneksi server.");
+        setErrorMsg("Terjadi kesalahan sistem.");
       }
     }
   };
@@ -48,27 +64,29 @@ const Login = () => {
           <p className="text-gray-500 mt-2">Please sign in to your account</p>
         </div>
 
+        {/* Conditional Rendering buat Error Message */}
         {errorMsg && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-sm text-center">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-sm text-center animate-pulse">
                 {errorMsg}
             </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-6">
           
-          {/* --- INPUT 1: USERNAME (Bukan Email) --- */}
+          {/* --- INPUT 1: EMAIL/USERNAME --- */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Email or Username</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaUser className="text-gray-400" />
               </div>
-              {/* Type text, bukan email */}
               <input 
                 type="text" 
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
-                placeholder="Masukkan email or username..." 
+                placeholder="Masukkan email atau username..." 
                 value={name} 
+                // 5. onChange Event gak perlu ditulis (e: ChangeEvent) kalau inline gini,
+                // TS udah pinter nebak sendiri.
                 onChange={(e) => setName(e.target.value)} 
                 required 
               />
@@ -93,7 +111,7 @@ const Login = () => {
             </div>
           </div>
 
-          <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg">
+          <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg cursor-pointer">
             Sign In
           </button>
         </form>

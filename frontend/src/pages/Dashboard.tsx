@@ -1,22 +1,16 @@
 // src/pages/Dashboard.tsx
 
 import React, { useState } from "react";
-// Icon
 import { FaBullhorn, FaClipboardList, FaClock, FaCheckCircle, FaChartLine, FaTrash } from "react-icons/fa";
-// Hook Sakti Kita (Logic Backend pindah ke sini semua)
 import { useTodos } from "../hooks/useTodos";
-// Service Admin (Asumsi masih di file lama/belum dimigrasi, gak apa-apa)
-import { createBroadcast } from "../services/api"; // Atau ../services/adminService kalo udah dipisah
-// Komponen
+import { notificationService } from "../services/notificationService"; 
 import ProductivityChart from "../components/ProductivityChart";
-import TodoInput from "../pages/TodoInput"; // Pastikan path sesuai struktur baru
+import TodoInput from "../pages/TodoInput"; 
 
 const Dashboard: React.FC = () => {
-  // 1. PANGGIL HOOK (Kita "nyolong" logic dari useTodos)
-  // Dashboard jadi 'pintar' tanpa perlu coding ulang logic fetch/add/delete
-  const { tasks, loading, addTask, removeTask } = useTodos();
 
-  // State Input Dashboard (Khusus input di halaman ini)
+  const { tasks, loading, addTask, removeTask  } = useTodos();
+
   const [newTask, setNewTask] = useState("");
   const [inputLoading, setInputLoading] = useState(false);
 
@@ -24,31 +18,24 @@ const Dashboard: React.FC = () => {
   const [isAdmin] = useState<boolean>(() => localStorage.getItem("role") === "admin");
   const [broadcastMsg, setBroadcastMsg] = useState({ title: "", message: "" });
 
-  // --- 2. LOGIC STATS (AUTO CALCULATION) ---
-  // Gak perlu useEffect manual lagi!
-  // Setiap 'tasks' berubah (gara-gara useTodos), variabel ini otomatis update.
   const total = tasks.length;
   const completed = tasks.filter((t) => t.completed).length;
   const pending = total - completed;
 
-  // --- LOGIC ADD TASK (Wrapper) ---
   const handleAddTodo = async () => {
     if (!newTask.trim()) return;
     setInputLoading(true);
-    // Panggil fungsi dari Hook
     await addTask(newTask);
-    setNewTask(""); // Reset input dashboard
+    setNewTask(""); 
     setInputLoading(false);
   };
 
-  // --- LOGIC ADMIN BROADCAST ---
   const handleBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!broadcastMsg.message) return alert("Isi pesan dulu dong!");
 
     try {
-      // Asumsi createBroadcast belum di-TS-kan, jadi kita pake any dulu atau biarin JS
-      await createBroadcast({
+      await notificationService.createBroadcast({
         title: broadcastMsg.title || "Info Admin",
         message: broadcastMsg.message,
       });
@@ -78,7 +65,6 @@ const Dashboard: React.FC = () => {
       <div className="px-6">
         {/* STATS CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Card Total */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">
             <div className="p-4 bg-blue-50 rounded-2xl text-blue-600"><FaClipboardList className="text-2xl" /></div>
             <div>
@@ -87,7 +73,6 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Card Pending */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">
             <div className="p-4 bg-orange-50 rounded-2xl text-orange-500"><FaClock className="text-2xl" /></div>
             <div>
@@ -96,7 +81,6 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Card Completed */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">
             <div className="p-4 bg-green-50 rounded-2xl text-green-500"><FaCheckCircle className="text-2xl" /></div>
             <div>
@@ -109,22 +93,17 @@ const Dashboard: React.FC = () => {
         {/* INPUT & CHART SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           
-          {/* KOLOM KIRI: INPUT & QUICK LIST */}
           <div className="lg:col-span-2 space-y-6">
-            
-            {/* INPUT COMPONENT */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Add Quick Task</h2>
-              {/* Kita reuse komponen TodoInput yang udah TS */}
               <TodoInput 
-                value={newTask} // State lokal dashboard
-                onChange={setNewTask} // State lokal dashboard
-                onAdd={handleAddTodo} // Logic wrapper di atas
+                value={newTask} 
+                onChange={setNewTask} 
+                onAdd={handleAddTodo} 
                 loading={inputLoading}
               />
             </div>
 
-            {/* QUICK LIST (Simple View) */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 min-h-[300px]">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Latest Tasks</h2>
               <div className="space-y-3">
@@ -133,7 +112,6 @@ const Dashboard: React.FC = () => {
                     <p>No tasks available.</p>
                   </div>
                 ) : (
-                  // Kita ambil 5 task terakhir aja buat dashboard
                   tasks.slice(0, 5).map((todo) => (
                     <div key={todo.id} className="group bg-gray-50 hover:bg-white p-4 rounded-xl border border-transparent hover:border-gray-200 hover:shadow-md transition-all flex justify-between items-center">
                       <div className="flex items-center gap-3">
@@ -143,6 +121,7 @@ const Dashboard: React.FC = () => {
                         </span>
                       </div>
                       <button
+                        // ✅ FIX 2 (Usage): Panggil deleteTask
                         onClick={() => {
                            if(window.confirm("Delete?")) removeTask(todo.id)
                         }}
@@ -160,7 +139,6 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* KOLOM KANAN: CHART */}
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 h-full">
               <div className="flex items-center justify-between mb-6">
@@ -176,7 +154,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* ADMIN PANEL */}
         {isAdmin && (
           <div className="relative overflow-hidden bg-linear-to-r from-indigo-600 to-purple-700 p-8 rounded-3xl shadow-xl text-white mb-8">
             <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>

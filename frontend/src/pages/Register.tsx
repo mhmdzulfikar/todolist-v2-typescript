@@ -1,31 +1,31 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaCheckCircle } from "react-icons/fa"; // Icon
-import { registerUser } from "../services/api";
+import { authService } from "../services/authService"; 
 
-const Register = () => {
+const Register: React.FC = () => {
 
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confPassword, setConfPassword] = useState(""); 
-  const [errorMsg, setErrorMsg] = useState("");
+  const [name, setName] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confPassword, setConfPassword] = useState<string>(""); 
+  const [errorMsg, setErrorMsg] = useState<string>("");
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       
-      await registerUser({ 
-          name: name,
+      await authService.register({ 
+          email: name,
           password: password,
           confirmPassword: confPassword
       });
       
       alert("Registration Successful! Please Login.");
       navigate("/login");
-    } catch (error) {
+    } catch (error: any) {
       if (error.response) {
-        setErrorMsg(error.response.data.msg);
+                setErrorMsg(error.response.data.msg || error.response.data.message || "Registeration Failed");
       } else {
         setErrorMsg("Something went wrong");
       }
