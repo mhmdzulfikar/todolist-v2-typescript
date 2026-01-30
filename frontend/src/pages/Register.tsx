@@ -16,7 +16,7 @@ const Register: React.FC = () => {
     try {
       
       await authService.register({ 
-          email: name,
+          name: name,
           password: password,
           confirmPassword: confPassword
       });

@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa"; 
 import { authService } from "../services/authService"; 
 
-const Login: React.FC = () => { // 1. React.FC = Memberi tahu ini adalah Function Component
+const Login: React.FC = () => { 
   // 2. State Typing: <string>
   // Sebenernya TS cukup pinter nebak ini string, tapi ditulis biar tegas.
-  const [name, setName] = useState<string>("");
+  const [identifier, setIdentifier] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
   
@@ -20,7 +20,7 @@ const Login: React.FC = () => { // 1. React.FC = Memberi tahu ini adalah Functio
 
     try {
       // Panggil service (sesuaikan nama fungsinya di authService.ts lo)
-      const data = await authService.login({ email: name, password });
+     const data = await authService.login({ identifier, password });
       
       // Simpan ke LocalStorage
       localStorage.setItem('token', data.token);
@@ -84,10 +84,10 @@ const Login: React.FC = () => { // 1. React.FC = Memberi tahu ini adalah Functio
                 type="text" 
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
                 placeholder="Masukkan email atau username..." 
-                value={name} 
+                value={identifier} 
                 // 5. onChange Event gak perlu ditulis (e: ChangeEvent) kalau inline gini,
                 // TS udah pinter nebak sendiri.
-                onChange={(e) => setName(e.target.value)} 
+                onChange={(e) => setIdentifier(e.target.value)} 
                 required 
               />
             </div>

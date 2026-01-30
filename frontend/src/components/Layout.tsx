@@ -2,9 +2,9 @@ import React from "react";
 import { Outlet } from "react-router-dom"; // Outlet itu tempat ganti-ganti halaman
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
-import Footer from "./Footer";
+// import Footer from "./Footer";
 
-const Layout = () => {
+const Layout: React.FC = () => {
   return (
     // Container Utama: Full Screen & Gak boleh scroll window (overflow-hidden)
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -19,9 +19,7 @@ const Layout = () => {
         <div className="flex-none z-40">
            <Navbar />
         </div>
-
-        {/* Area Konten (TENGAH - SCROLLABLE) */}
-        {/* Outlet adalah tempat Home, Dashboard, Todo, dll muncul */}
+        {/* Content (Tengah - Scrollable) */}
         <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
            <Outlet /> 
         </main>

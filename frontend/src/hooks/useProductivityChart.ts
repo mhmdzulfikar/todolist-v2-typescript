@@ -1,24 +1,34 @@
 import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { getTodos } from "../services/api";
+import { todoService } from "../services/todoService";
+
+interface ChartDataItem {
+  date: string;
+  completed: number;
+  pending: number;
+}
 
 export const useProductivityChart = () => {
-  const [chartData, setChartData] = useState([]);
+  const [chartData, setChartData] = useState<ChartDataItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEmpty, setIsEmpty] = useState(false);
 
-  useEffect(() => {
+ 
     const fetchData = async () => {
       try {
-        const todos = await getTodos();
+        const todos = await todoService.getAll();
 
         if (!todos || todos.length === 0) {
           setIsEmpty(true);
+          setLoading(false);
           return;
         }
 
         // 🔥 SATU SUMBER TANGGAL: createdAt
-        const grouped = todos.reduce((acc, todo) => {
+        const grouped = todos.reduce<Record<string, ChartDataItem>>((acc, todo) => {
+        
+          if (!todo.createdAt) return acc;
+
           const dateKey = format(
             parseISO(todo.createdAt),
             "dd MMM"
@@ -42,16 +52,19 @@ export const useProductivityChart = () => {
         }, {});
 
         const result = Object.values(grouped);
+
         setChartData(result);
         setIsEmpty(false);
+
       } catch (error) {
         console.error("Chart error:", error);
         setIsEmpty(true);
       } finally {
         setLoading(false);
       }
-    };
+    }
 
+     useEffect(() => {
     fetchData();
   }, []);
 

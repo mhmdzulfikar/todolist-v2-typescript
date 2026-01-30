@@ -1,30 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { FaInfoCircle, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
-import { getNotifications } from "../services/api";
+import { notificationService } from "../services/notificationService";
 import { formatDistanceToNow } from 'date-fns'; 
+// import { id } from "date-fns/locale"; // Untuk format bahasa Indonesia, Opsional 
 
-const NotificationPopup = () => {
-  const [notifications, setNotifications] = useState([]);
+interface notificarionItem {
+     id: number;
+     title: string;
+     message: string;
+     type: "admin" | "success" | "warning";
+     createdAt: string; 
+}
 
-  // 🔥 SOLUSI: Logic Fetch ada DI DALAM useEffect
-  useEffect(() => {
+const NotificationPopup: React.FC = () => {
+  const [notifications, setNotifications] = useState<notificarionItem[]>([]);
     
-    const fetchNotifs = async () => {
+    const fetchNotifs = useCallback(async ()  => {
       try {
-        const data = await getNotifications();
+        const data = await notificationService.getNotifications();
         setNotifications(data);
-      } catch (error) {
-        console.error("Gagal ambil notif:", error);
+      } catch (err) {
+        console.error("Gagal ambil notif:", err);
       }
-    };
+    }, []);
 
-    fetchNotifs();
+    useEffect(() => {
+      fetchNotifs();
+    }, [fetchNotifs]);
     
     // Opsional: Pasang interval biar update sendiri tiap 10 detik
     // const interval = setInterval(fetchNotifs, 10000);
     // return () => clearInterval(interval);
-
-  }, []); // Array kosong = Jalan 1x pas dibuka
 
   return (
     <div className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in duration-200 origin-top-right">

@@ -10,10 +10,10 @@ const getSecret = () => process.env.JWT_SECRET || "rahasia_negara_api";
 export const register = async (req: Request, res: Response): Promise<any> => {
     try {
         
-        const { name, password, confirmPassword } = req.body;
+        const { identifier, password, confirmPassword } = req.body;
 
         // Debugging Log (Biar keliatan di terminal)
-        console.log("📥 Register Request:", { name }); 
+        console.log("📥 Register Request:", { identifier }); 
 
         if (password !== confirmPassword) {
             return res.status(400).json({ msg: "Password dan Confirm Password tidak cocok" });
@@ -21,7 +21,12 @@ export const register = async (req: Request, res: Response): Promise<any> => {
 
         // Cek Duplikat (Pake name)
         const userExists: any = await User.findOne({
-            where: { name: name } 
+            where: { 
+                [Op.or]: [
+                    { email: identifier },
+                    { name: identifier }
+                ]
+            } 
         });
 
         if (userExists) {
@@ -33,7 +38,7 @@ export const register = async (req: Request, res: Response): Promise<any> => {
 
         // Create User
         const newUser: any = await User.create({
-            name: name, // Pastikan ini name
+            name: identifier, // Pastikan ini name
             password: hashPassword,
             role: "user",
             level: 1,
@@ -59,14 +64,14 @@ export const register = async (req: Request, res: Response): Promise<any> => {
 // 2. LOGIN
 export const login = async (req: Request, res: Response): Promise<any> => {
     try {
-        const { name, password } = req.body;
+        const { identifier, password } = req.body;
 
         // Support login by Name OR Email
         const user: any = await User.findOne({
             where: {
                 [Op.or]: [
-                    { name: name },
-                    { email: name }
+                    { name: identifier },
+                    { email: identifier }
                 ]
             }
         });

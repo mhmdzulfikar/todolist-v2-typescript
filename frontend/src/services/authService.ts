@@ -2,11 +2,12 @@ import api from './api';
 
 // Definisiin Tipe Data biar enak (Opsional tapi Recommended)
 interface LoginDTO {
-    email: string;
+    identifier: string;
     password: string;
 }
 
 export const authService = {
+
     register: async (userData: any) => { // Ganti any dengan interface User kalau sempet
         const response = await api.post('/auth/register', userData);
         return response.data;

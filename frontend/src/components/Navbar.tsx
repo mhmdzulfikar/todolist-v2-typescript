@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { FaSearch, FaBell, FaSignOutAlt, FaStar, FaUser } from "react-icons/fa";
+import React, { useState, useEffect, useCallback } from "react";
+import { FaBell, FaSignOutAlt, FaStar } from "react-icons/fa"; // Hapus FaSearch & FaUser kalau gak dipake
 import { useNavigate } from "react-router-dom";
 import CardNavPage from "../pages/CardNavPage"; 
 import NotificationPopup from "./NotificationPopup";
-// Import API getMe
-import { getMe } from "../services/api"; 
+// Pastikan path import ini bener (sesuai struktur folder services baru lu)
+import { authService } from "../services/authService"; 
 
 const Navbar = () => {
   // Default data user
@@ -18,43 +18,44 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
 
-  // 🔥 SOLUSI ANTI ERROR: Logic Fetch ada DI DALAM useEffect
-  useEffect(() => {
-    
-    const fetchUserData = async () => {
+  // 1. DEFINISI FUNGSI FETCH (Pake useCallback biar gak lari-lari memorinya)
+  const fetchUserData = useCallback(async () => {
       try {
-        // Cek token dulu
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const data = await getMe();
+        // Pake authService.getMe() yang udah lu update
+        const data = await authService.getMe();
         
-        // Update State
         setUserData({
           name: data.name,
           xp: data.xp || 0,
           level: data.level || 1
         });
 
-        // Sync local storage
+        // Sync local storage biar kalau refresh gak ilang
         localStorage.setItem("name", data.name);
         if (data.role) localStorage.setItem("role", data.role);
 
       } catch (error) {
         console.error("Gagal update data user", error);
       }
-    };
+  }, []); // Dependency array kosong = fungsi ini gak berubah-ubah
 
-    // 1. Jalanin saat pertama kali
-    fetchUserData();
+  // 2. USE EFFECT BUAT JALANIN LOGIC FETCH
+  useEffect(() => {
+      // A. Jalanin sekali pas pertama kali render
+      fetchUserData();
 
-    // 2. Jalanin setiap 5 detik (Biar XP nambah real-time)
-    const interval = setInterval(fetchUserData, 5000);
-    
-    // 3. Bersihkan interval saat pindah halaman
-    return () => clearInterval(interval);
-    
-  }, []); // <--- Dependency Kosong (Aman dari Loop)
+      // B. Jalanin Interval setiap 5 detik (Real-time XP)
+      const interval = setInterval(() => {
+          fetchUserData();
+      }, 5000);
+      
+      // C. Cleanup (Matiin interval kalau user pindah halaman biar gak memory leak)
+      return () => clearInterval(interval);
+      
+  }, [fetchUserData]); // Kalau fungsi fetchUserData berubah, useEffect jalan ulang
 
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure?");
@@ -68,14 +69,14 @@ const Navbar = () => {
   const xpProgress = userData.xp % 100; 
 
   return (
-    <nav className="sticky top-0 z-50 w-full h-20 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 w-full h-20 bg-white border-b border-gray-200 px-6 flex items-center justify-between shadow-sm">
       
       {/* KIRI */}
       <div className="flex items-center gap-4">
         <div className="relative w-[60px] h-[60px] flex items-center justify-center min-[766px]:hidden">
              <CardNavPage />
         </div>
-        <div className="text-2xl font-bold  from-indigo-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hidden md:block">
+        <div className="text-2xl font-bold bg-blue-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hidden md:block">
           MyApp
         </div>
       </div>
@@ -84,7 +85,7 @@ const Navbar = () => {
       <div className="flex items-center gap-6">
         
         {/* GAMIFICATION BAR */}
-        <div className="hidden md:flex flex-col items-end mr-2">
+        <div className="hidden md:flex flex-col items-end mr-2 animate-fade-in">
             <div className="flex items-center gap-1 text-xs font-bold text-indigo-900 mb-1">
                 <span className="bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm">
                     <FaStar size={10} /> LVL {userData.level}
@@ -94,7 +95,7 @@ const Navbar = () => {
             {/* Progress Bar */}
             <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
                 <div 
-                    className="h-full from-yellow-400 to-orange-500 transition-all duration-1000 ease-out"
+                    className="h-full bg-blue-to-r from-yellow-400 to-orange-500 transition-all duration-1000 ease-out"
                     style={{ width: `${xpProgress}%` }}
                 ></div>
             </div>
@@ -107,6 +108,7 @@ const Navbar = () => {
                 className={`relative p-2 rounded-full transition-colors ${isNotifOpen ? "bg-indigo-50 text-indigo-600" : "text-gray-500 hover:bg-gray-100"}`}
             >
                 <FaBell />
+                {/* Buletan merah cuma muncul kalau ada notif baru (Logic ini bisa ditambah nanti) */}
                 <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
             {isNotifOpen && <NotificationPopup />}
@@ -136,9 +138,8 @@ const Navbar = () => {
         </div>
 
       </div>
-
     </nav>
   );
-};
+}; // <-- Tutup Function Component Navbar di sini
 
 export default Navbar;
