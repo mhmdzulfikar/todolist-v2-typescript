@@ -1,45 +1,34 @@
-// src/components/SnippetLibrary.tsx
+import { useSnippets } from "../hooks/useSnippets"; 
+import { useState } from "react";
+import { FaSearch, FaPlus, FaTrash, FaCopy, FaPencilAlt, FaCode } from "react-icons/fa";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { Snippet } from "../types/snippet"; // Import 'Snippet'
 
-import React, { useState, useEffect } from "react";
-import { FaPlus, FaTrash, FaCopy, FaCode, FaSearch, FaPencilAlt } from "react-icons/fa";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'; 
-import { snippetService } from "../services/snippetService";
-
-// 1. DEFINISI TIPE DATA (INTERFACE)
-interface SnippetItem {
+// Definisi State Form (ID kita bikin number biasa aja, default 0 kalo create)
+interface SnippetFormState {
     id: number;
     title: string;
     language: string;
     code: string;
 }
 
-// Interface buat State Form (ID-nya opsional karena pas Create belum punya ID)
-interface SnippetFormState {
-    id?: number; 
-    title: string;
-    language: string;
-    code: string;
-}
-
-// FIX 1: Component ini adalah Halaman, jadi gak butuh Props aneh-aneh.
 const SnippetLibrary: React.FC = () => {
-  
-  // FIX 2: Kasih tau useState kalau ini Array of SnippetItem
-  const [snippets, setSnippets] = useState<SnippetItem[]>([]); 
+  // 🔥 PANGGIL OTAKNYA
+  const { snippets, loading, createSnippet, deleteSnippet, updateSnippet } = useSnippets();
+
   const [searchTerm, setSearchTerm] = useState(""); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // FIX 3: State Form pake Interface biar TS tau boleh ada 'id'
+  // Default ID 0 artinya "Mode Create"
   const [formData, setFormData] = useState<SnippetFormState>({ 
+      id: 0, 
       title: "", 
       language: "javascript", 
       code: "" 
   });
-  
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  // FIX 4: Kasih tipe 'string' buat parameter lang
+  // Helper Warna (Tadi kode lu ilang bagian ini)
   const getLangColor = (lang: string) => {
     switch(lang) {
         case 'javascript': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
@@ -52,61 +41,43 @@ const SnippetLibrary: React.FC = () => {
     }
   };
 
-  // 1. FETCH DATA (READ)
-  useEffect(() => {
-    const fetchData = async () => { 
-      try { 
-        // FIX 5: Panggil pake nama object service-nya
-        const data = await snippetService.getAll();
-        setSnippets(data); 
-      } catch (error) { 
-        console.error("Gagal ambil data", error);
-      }
-    };
-    fetchData(); 
-  }, [refreshKey]); 
-
-  // 2. HANDLE SUBMIT (CREATE & UPDATE)
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); 
-    try {
-        if (formData.id) {
-            // UPDATE: TS sekarang gak marah karena interface SnippetFormState punya 'id'
-            await snippetService.update(formData.id, formData);
-            alert("Berhasil di-update! 🚀");
-        } else {
-            // CREATE
-            await snippetService.create(formData);
-            alert("Berhasil disimpan! 🎉");
-        }
+    e.preventDefault();
+    let success = false;
 
+    // Cek ID: Kalau 0 berarti Create, kalau ada angka berarti Update
+    if (formData.id !== 0) {
+        success = await updateSnippet(formData.id, formData);
+    } else {
+        // Pas create, kita buang ID-nya karena service minta 'SnippetInput' (tanpa ID)
+        const { id, ...dataToCreate } = formData;
+        success = await createSnippet(dataToCreate);
+    }
+
+    if (success) {
         setIsModalOpen(false);
-        setFormData({ title: "", language: "javascript", code: "" }); 
-        setRefreshKey(oldKey => oldKey + 1); 
-    } catch (error) { 
-        console.error(error);
-        alert("Gagal menyimpan data.");
+        setFormData({ id: 0, title: "", language: "javascript", code: "" });
+        alert("Berhasil bos! 🎉");
+    } else {
+        alert("Gagal bos 😢");
     }
   };
 
-  // 3. HANDLE DELETE
-  const handleDelete = async (id: number) => {
-    if(confirm("Hapus kode ini?")) {
-        await snippetService.delete(id);
-        setRefreshKey(oldKey => oldKey + 1);
-    }
+  const handleDelete = (id: number) => {
+      if(confirm("Yakin hapus?")) {
+          deleteSnippet(id);
+      }
   };
 
-  // 4. HANDLE COPY
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
     alert("Code copied successfully!");
   };
 
-  // 5. HANDLE EDIT CLICK
-  const handleEditClick = (snippet: SnippetItem) => {
+  // Fix Typo: parameternya 'snippet' tipe datanya 'Snippet'
+  const handleEditClick = (snippet: Snippet) => {
       setFormData({
-          id: snippet.id, // TS Senang karena formData.id (optional) diisi number
+          id: snippet.id,
           title: snippet.title,
           language: snippet.language,
           code: snippet.code
@@ -114,7 +85,6 @@ const SnippetLibrary: React.FC = () => {
       setIsModalOpen(true);
   };
 
-  // Logic Search Filter
   const filteredSnippets = snippets.filter((snip) => {
     if (!snip) return false;
     const term = searchTerm.toLowerCase();
@@ -123,13 +93,16 @@ const SnippetLibrary: React.FC = () => {
     return title.includes(term) || lang.includes(term);
   });
 
+  if (loading) return <p className="text-center mt-10">Loading data...</p>;
+
   return (
-    <div className="w-full max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto p-4">
 
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
             <div>
                 <h1 className=" text-4xl font-extrabold tracking-tight text-gray-900 flex items-center gap-3">
+                    {/* Fix Tailwind Class: bg-gradient-to-r */}
                     <span className="bg-clip-text text-transparent bg-blue-to-r from-indigo-500 to-purple-600">
                         Code Library
                     </span>
@@ -139,7 +112,6 @@ const SnippetLibrary: React.FC = () => {
                 </p>
             </div>
             
-            {/* Search Bar & Add Button */}
             <div className="flex items-center gap-4">
                 <div className="relative group">
                     <FaSearch className="absolute left-3 top-3 text-gray-400 group-focus-within:text-indigo-500 transition-colors"/>
@@ -154,7 +126,7 @@ const SnippetLibrary: React.FC = () => {
 
                 <button 
                     onClick={() => {
-                        setFormData({ title: "", language: "javascript", code: "" });
+                        setFormData({ id: 0, title: "", language: "javascript", code: "" });
                         setIsModalOpen(true);
                     }}
                     className="group relative inline-flex items-center justify-center px-8 py-3 font-semibold text-white transition-all duration-200 bg-indigo-600 font-lg rounded-full hover:bg-indigo-700 shadow-lg hover:-translate-y-0.5"
@@ -165,12 +137,11 @@ const SnippetLibrary: React.FC = () => {
             </div>
         </div>
 
-        {/* Grid Layout (Daftar Kartu) */}
+        {/* Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
             {filteredSnippets.map((snip) => (
                 <div key={snip.id} className="group flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-xl hover:border-indigo-500 transition-all duration-300 hover:-translate-y-1">
                     
-                    {/* Card Header */}
                     <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <div className="flex items-center gap-3">
                             <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getLangColor(snip.language)} uppercase tracking-wider`}>
@@ -194,7 +165,6 @@ const SnippetLibrary: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Code Area */}
                     <div className="flex-1 relative group-hover:bg-[#1e1e1e] transition-colors bg-[#2d2d2d] rounded-b-2xl overflow-hidden">
                         <SyntaxHighlighter 
                             language={snip.language} 
@@ -215,20 +185,13 @@ const SnippetLibrary: React.FC = () => {
             ))}
         </div>
 
-        {/* Empty State */}
-        {filteredSnippets.length === 0 && searchTerm !== "" && (
-             <div className="text-center py-10 text-gray-500">
-                 No snippets found for "{searchTerm}" 😢
-             </div>
-        )}
-
       {/* MODAL FORM */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
              <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden transform transition-all scale-100">
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                     <h2 className="text-lg font-bold text-gray-800">
-                        {formData.id ? "Edit Snippet" : "Create New Snippet"}
+                        {formData.id !== 0 ? "Edit Snippet" : "Create New Snippet"}
                     </h2>
                     <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors">
                         <FaPlus className="rotate-45 text-xl" />
@@ -270,7 +233,7 @@ const SnippetLibrary: React.FC = () => {
                     </div>
                     <div className="flex justify-end pt-2">
                         <button type="submit" className="bg-blue-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-2.5 rounded-lg font-bold shadow-lg transform transition-transform active:scale-95">
-                            {formData.id ? "Update Changes" : "Save to Library"}
+                            {formData.id !== 0 ? "Update Changes" : "Save to Library"}
                         </button>
                     </div>
                 </form>

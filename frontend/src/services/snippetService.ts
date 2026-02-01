@@ -1,31 +1,25 @@
 import api from './api';
-
-// Kita definisiin dulu data yang mau dikirim itu bentuknya gimana
-export interface SnippetDTO {
-  title: string;
-  language: string;
-  code: string;
-}
+import { Snippet, SnippetInput, SnippetUpdate } from '../types/snippet';
 
 export const snippetService = {
-  // Return Promise<SnippetItem[]> biar frontend tau dia bakal dapet array
-  getAll: async () => {
+  // Ambil semua -> Balikannya Array of Snippet
+  getAll: async (): Promise<Snippet[]> => {
     const response = await api.get('/snippets');
     return response.data;
   },
 
-  create: async (data: SnippetDTO) => {
+  // Create -> Kirimnya SnippetInput (Tanpa ID)
+  create: async (data: SnippetInput): Promise<Snippet> => {
     const response = await api.post('/snippets', data);
     return response.data;
   },
 
-  delete: async (id: number) => {
-    const response = await api.delete(`/snippets/${id}`);
-    return response.data;
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/snippets/${id}`);
   },
 
-  // Data disini bisa partial (cuma title doang, atau code doang)
-  update: async (id: number, data: Partial<SnippetDTO>) => {
+  // Update -> Kirimnya SnippetUpdate
+  update: async (id: number, data: SnippetUpdate): Promise<Snippet> => {
     const response = await api.put(`/snippets/${id}`, data);
     return response.data;
   }

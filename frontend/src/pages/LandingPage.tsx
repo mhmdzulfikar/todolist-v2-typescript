@@ -2,24 +2,25 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FaRocket, FaCode, FaGamepad, FaClock, FaCheckCircle, FaArrowRight } from "react-icons/fa";
 
-// Import gambar assets
-import dashboardImg from "../assets/image.png"; 
+// ⚠️ Pastikan ada file deklarasi (vite-env.d.ts) biar gak error import gambar
+import dashboardImg from "../assets/SS_Pages_TODO.webp"; 
 
 // --- 1. KOMPONEN BUAT EFEK MUNCUL (SCROLL REVEAL) ---
-const RevealOnScroll = ({ children, delay = 0 }) => {
+// ReactElement jadi ReactNode biar lebih fleksibel (bisa nerima text/array)
+const RevealOnScroll: React.FC<{ children: React.ReactNode; delay?: number }> = ({ children, delay = 0 }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
+  // 🔥 FIX TS: Kasih tipe HTMLDivElement buat useRef
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Jika elemen muncul di layar, set visible
         if (entry.isIntersecting) {
           setIsVisible(true);
-          observer.unobserve(entry.target); // Stop observasi setelah muncul (biar performa ringan)
+          observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.1 } // Muncul saat 10% elemen terlihat
+      { threshold: 0.1 }
     );
 
     if (ref.current) observer.observe(ref.current);
@@ -48,25 +49,30 @@ const LandingPage = () => {
   // --- 2. LOGIC PARALLAX (MOUSE MOVE) ---
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  const handleMouseMove = (e) => {
-    // Menghitung posisi mouse relatif terhadap tengah layar
-    const x = (e.clientX - window.innerWidth / 2) / 25; // Bagi 25 biar gerakannya halus/lambat
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const x = (e.clientX - window.innerWidth / 2) / 25;
     const y = (e.clientY - window.innerHeight / 2) / 25;
     setMousePosition({ x, y });
   };
 
+  // Handle scroll biar gak error 'possibly null'
+  const handleScrollToFeatures = (e: React.MouseEvent) => {
+      e.preventDefault();
+      const element = document.getElementById('features');
+      if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+      }
+  };
+
   return (
-    // Tambahkan 'scroll-smooth' di parent div atau html (biasanya di global css, tapi disini kita paksa di div utama)
-    // onMouseMove dipasang di sini untuk efek parallax
     <div 
         onMouseMove={handleMouseMove}
         className="min-h-screen bg-white text-gray-800 font-sans selection:bg-indigo-100 overflow-x-hidden"
-        style={{ scrollBehavior: "smooth" }} // CSS Smooth Scroll
     >
       
       {/* --- NAVBAR --- */}
       <nav className="fixed top-0 w-full py-4 px-6 md:px-12 flex justify-between items-center max-w-7xl mx-auto left-0 right-0 z-50 bg-white/80 backdrop-blur-md transition-all border-b border-gray-100">
-        <div className="text-2xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent cursor-pointer">
+        <div className="text-2xl font-bold bg-blue-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent cursor-pointer">
           DevBoard
         </div>
         <div className="flex gap-4 items-center">
@@ -94,7 +100,8 @@ const LandingPage = () => {
         <RevealOnScroll delay={100}>
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
             Manage Code. <br className="hidden md:block"/>
-            <span className="bg-linear-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+            {/* 🔥 FIX: Ganti bg-linear jadi bg-gradient (Standar Tailwind) */}
+            <span className="bg-blue-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
                 Level Up Your Life.
             </span>
             </h1>
@@ -112,13 +119,10 @@ const LandingPage = () => {
             <Link to="/register" className="px-8 py-4 bg-indigo-600 text-white text-lg font-bold rounded-xl shadow-xl hover:bg-indigo-700 transition-all hover:-translate-y-1 flex items-center gap-2">
                 Start Your Journey <FaArrowRight />
             </Link>
-            {/* Tombol Smooth Scroll ke #features */}
+            
             <a 
                 href="#features" 
-                onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={handleScrollToFeatures}
                 className="px-8 py-4 bg-white text-gray-700 border border-gray-200 text-lg font-bold rounded-xl hover:bg-gray-50 transition-all cursor-pointer"
             >
                 Learn More
@@ -129,9 +133,9 @@ const LandingPage = () => {
         {/* --- AREA FOTO/SCREENSHOT (DENGAN PARALLAX) --- */}
         <div className="mt-16 relative mx-auto max-w-5xl group perspective-1000">
             <RevealOnScroll delay={400}>
-                {/* Efek Glow Bergerak Mengikuti Mouse (Parallax) */}
+                {/* Efek Glow */}
                 <div 
-                    className="absolute -inset-1 bg-linear-to-r from-indigo-500 to-purple-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition duration-200"
+                    className="absolute -inset-1 bg-blue-to-r from-indigo-500 to-purple-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition duration-200"
                     style={{
                         transform: `translate(${mousePosition.x * -1}px, ${mousePosition.y * -1}px)`
                     }}
@@ -150,7 +154,7 @@ const LandingPage = () => {
                         className="w-full h-auto rounded-xl shadow-inner"
                     />
                     {/* Overlay gradient */}
-                    <div className="absolute inset-0 bg-linear-to-t from-slate-900/50 via-transparent to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-blue-to-t from-slate-900/50 via-transparent to-transparent pointer-events-none"></div>
                 </div>
             </RevealOnScroll>
         </div>
@@ -235,7 +239,7 @@ const LandingPage = () => {
       <section className="py-24 bg-slate-900 text-white text-center px-6 relative overflow-hidden">
         {/* Dekorasi Background CTA */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-linear-to-b from-indigo-900/50 to-slate-900 pointer-events-none"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-blue-to-b from-indigo-900/50 to-slate-900 pointer-events-none"></div>
 
         <div className="max-w-3xl mx-auto relative z-10">
             <RevealOnScroll>
@@ -243,7 +247,7 @@ const LandingPage = () => {
                 <p className="text-slate-400 text-lg mb-8">
                     Bergabunglah sekarang dan rasakan sensasi coding yang berbeda. Gratis selamanya untuk developer indie.
                 </p>
-                <Link to="/register" className="inline-block px-10 py-4 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/50 hover:scale-105 transition-all">
+                <Link to="/register" className="inline-block px-10 py-4 bg-blue-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/50 hover:scale-105 transition-all">
                     Create Free Account
                 </Link>
             </RevealOnScroll>
