@@ -6,6 +6,18 @@
 
 **Fullstack Productivity Hub** is a comprehensive web application designed to streamline daily tasks and boost efficiency. Built using the **PERN Stack** (PostgreSQL, Express, React, Node.js), this application integrates task management, note-taking, code snippet storage, and productivity analytics into a single, cohesive interface.
 
+## 🚀 Performance Optimization
+
+Achieved a **perfect 100/100 Lighthouse Performance score** on mobile devices by implementing advanced React optimization techniques.
+
+<img width="941" height="455" alt="Screenshot 2026-02-01 161738" src="https://github.com/user-attachments/assets/63240c76-8769-4729-a9c6-9eb23b2ecf50" />
+
+### ⚡ Key Optimizations:
+* **Route-based Code Splitting:** Implemented `React.lazy` and `Suspense` to split the bundle size. The heavy `SnippetLibrary` (with syntax highlighters) is only loaded when authenticated.
+* **Lazy Loading:** Critical resources are prioritized, while secondary components are loaded on demand.
+* **Asset Optimization:** Converted heavy assets to **WebP** format and specified explicit dimensions to prevent Cumulative Layout Shift (CLS).
+* **Result:** Reduced Initial Load Time significantly, achieving < 1s Largest Contentful Paint (LCP).
+
 
 ## System Design & Architecture
 
