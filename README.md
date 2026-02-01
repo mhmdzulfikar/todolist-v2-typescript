@@ -11,7 +11,6 @@
 Achieved a **perfect 100/100 Lighthouse Performance score** on mobile devices by implementing advanced React optimization techniques.
 
 <img width="941" height="455" alt="Screenshot 2026-02-01 161738" src="https://github.com/user-attachments/assets/63240c76-8769-4729-a9c6-9eb23b2ecf50" />
-*(Ganti path gambar di atas sesuai lokasi file lu di repo)*
 
 ### ⚡ Key Optimizations:
 * **Route-based Code Splitting:** Implemented `React.lazy` and `Suspense` to split the bundle size. The heavy `SnippetLibrary` (with syntax highlighters) is only loaded when authenticated.
