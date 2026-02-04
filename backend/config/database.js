@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-// 👇 KITA PAKE DATA NEON DB LU (Biar gak pusing mikirin password local)
+
 const dbName = 'neondb';
 const dbUser = 'neondb_owner';
 const dbPass = 'npg_4LyVuErGcqS1'; 
